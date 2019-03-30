@@ -49,7 +49,7 @@ interpret funcMap stack = \case
       v:stack' -> interpretInsts stack' (if getStackValue v /= 0 then thenInsts else elseInsts)
   Call fname ->
     let Function params insts = funcMap fname
-        bindings = zip params stackValues
+        bindings = zip params $ map getStackValue stack
         s:_:stack' = interpretInsts (StackFrame bindings : drop (length params) stack) insts
     in s:stack'
   where
@@ -59,7 +59,6 @@ interpret funcMap stack = \case
       (frame @ StackFrame {}:_) -> frame
       _:t -> getCurrentFrame t
     currentFrame = getCurrentFrame stack
-    stackValues = map getStackValue stack
     applyTwo f = case stack of
       StackValue v1: StackValue v2:s -> (StackValue $ f v2 v1) : s
       _ -> error "could not get two values"
