@@ -97,6 +97,30 @@ fac2 =
     ]
   ]
 
+facInc =
+  [("fac",
+  Function ["r", "i"]
+  [ GetLocal "i"
+  , Const 0
+  , Eq
+  , If
+    [ GetLocal "r" ]
+    [ GetLocal "i"
+    , Const 1
+    , Sub
+    , GetLocal "i"
+    , GetLocal "r"
+    , Mul
+    , Call "fac"
+    ]
+  ])
+  ,("entry",
+   Function ["n"]
+   [ GetLocal "n"
+   , Const 1
+   , Call "fac"
+   ])]
+
 assert :: (Show a, Eq a, Monad m) => a -> a -> m ()
 assert expected found = if expected == found then pure () else error $ "Expected " ++ show expected ++ " but found " ++ show found
 
@@ -110,8 +134,13 @@ testFact f = do
   assert 3628800 $ f 10
   assert (wrap32 6227020800) $ f 13
 
+runFunc name f args = interpret (\n -> if n == name then f else error "no such func") (map StackValue args) $ Call name
+
+runEntry fmap args = interpret (fromJust . (`lookup` fmap)) (map StackValue args) $ Call "entry"
+
 test :: Monad m => m ()
 test = do
-  let runFunc name f args = interpret (\n -> if n == name then f else error "no such func") (map StackValue args) $ Call name
-  testFact (\n -> getStackValue $ head $ runFunc "fac" fac [n])
-  testFact (\n -> getStackValue $ head $ runFunc "fac" fac2 [n])
+  let getResult = \case [StackValue v] -> v
+  testFact $ getResult . runFunc "fac" fac . (:[])
+  testFact $ getResult . runFunc "fac" fac2 . (:[])
+  testFact $ getResult . runEntry facInc . (:[])
