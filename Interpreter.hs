@@ -1,10 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
 
 import Data.Maybe
+import Data.Int (Int32)
+import Data.Coerce
 
 type Identifier = String
--- todo make Int32
-type Value = Int
+type Value = Int32
 
 data Instruction
   = GetLocal Identifier
@@ -26,7 +27,7 @@ boolToInt = \case
 data StackEntry
   = StackValue Value
   | StackFrame [(Identifier, Value)]
-  deriving (Show)
+  deriving (Show, Eq)
 
 type Stack = [StackEntry]
 
@@ -78,5 +79,18 @@ fac =
     ]
   ]
 
-test = interpret (\case "fac" -> fac) [StackValue 5] $ Call "fac"
+assert :: (Show a, Eq a, Monad m) => a -> a -> m ()
+assert expected found = if expected == found then pure () else error $ "Expected " ++ show expected ++ " but found " ++ show found
 
+wrap32 :: Integer -> Int32
+wrap32 i = fromInteger (i `mod` 2^31)
+
+test :: Monad m => m ()
+test = do
+  let runFunc name args = interpret (\n -> if n == name then fac else error "no such func") (map StackValue args) $ Call name
+  let runFac n = runFunc "fac" [n]
+  assert [StackValue 1] $ runFac 0
+  assert [StackValue 1] $ runFac 1
+  assert [StackValue 120] $ runFac 5
+  assert [StackValue 3628800] $ runFac 10
+  assert [StackValue (wrap32 6227020800)] $ runFac 13
