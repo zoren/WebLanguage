@@ -41,7 +41,7 @@ interpret funcMap stack = \case
     let StackFrame locals = currentFrame in
     (StackValue $ fromJust $ lookup name locals) : stack
   Const v -> StackValue v:stack
-  Eq -> applyTwo $ \v1 v2 -> boolToInt $ v1 == v2
+  Eq -> applyTwo $ fmap (fmap boolToInt) (==)
   Sub -> applyTwo (-)
   Mul -> applyTwo (*)
   If thenInsts elseInsts ->
