@@ -3,37 +3,64 @@
 import Data.Maybe
 
 type Identifier = String
+-- todo make Int32
+type Value = Int
 
 data Instruction
   = GetLocal Identifier
-  | Const Int
+  | Const Value
   | Eq
   | Sub
   | Mul
   | If [Instruction] [Instruction]
+  | Loop [Instruction]
   | Call Identifier
 
 data Function
   = Function [Identifier] [Instruction]
 
-interpret funcMap (locals, stack) = \case
-  GetLocal name -> updStack $ (fromJust $ lookup name locals) : stack
-  Const v -> updStack $ v:stack
-  Eq -> applyTwo $ \v1 v2 -> if v1 == v2 then 1 else 0
-  Sub -> applyTwo $ flip (-)
+boolToInt = \case
+  False -> 0
+  True -> 1
+
+data StackEntry
+  = StackValue Value
+  | StackFrame [(Identifier, Value)]
+  deriving (Show)
+
+type Stack = [StackEntry]
+
+interpret :: (Identifier -> Function) -> Stack -> Instruction -> Stack
+interpret funcMap stack = \case
+  GetLocal name ->
+    let StackFrame locals = currentFrame in
+    (StackValue $ fromJust $ lookup name locals) : stack
+  Const v -> StackValue v:stack
+  Eq -> applyTwo $ \v1 v2 -> boolToInt $ v1 == v2
+  Sub -> applyTwo (-)
   Mul -> applyTwo (*)
   If thenInsts elseInsts ->
     case stack of
-      v:s -> foldl (interpret funcMap) (locals, s) (if v == 1 then thenInsts else elseInsts)
+      v:stack' -> interpretInsts stack' (if getStackValue v /= 0 then thenInsts else elseInsts)
   Call fname ->
     let Function params insts = funcMap fname
-        bindings = zip params stack
-    in foldl (interpret funcMap) (bindings, drop (length params) stack) insts
+        bindings = zip params stackValues
+        s:_:stack' = interpretInsts (StackFrame bindings : drop (length params) stack) insts
+    in s:stack'
   where
-    updStack ns = (locals, ns)
+    interpretInsts = foldl (interpret funcMap)
+    getCurrentFrame = \case
+      [] -> error "no current frame"
+      (frame @ StackFrame {}:_) -> frame
+      _:t -> getCurrentFrame t
+    currentFrame = getCurrentFrame stack
+    getStackValue = \case
+      StackValue v -> v
+      _ -> error "could not get value"
+    stackValues = map getStackValue stack
     applyTwo f = case stack of
-      v1:v2:s -> updStack $ (f v1 v2) : s
-      _ -> error "could not get two"
+      StackValue v1: StackValue v2:s -> (StackValue $ f ( v2) ( v1)) : s
+      _ -> error "could not get two values"
 
 fac =
   Function ["n"]
@@ -51,4 +78,5 @@ fac =
     ]
   ]
 
-test = interpret (\case "fac" -> fac) ([], [5]) $ Call "fac"
+test = interpret (\case "fac" -> fac) [StackValue 5] $ Call "fac"
+
