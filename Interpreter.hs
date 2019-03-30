@@ -35,10 +35,15 @@ getStackValue = \case
   StackValue v -> v
   _ -> error "could not get value"
 
+getCurrentFrame = \case
+  [] -> error "no current frame"
+  (frame @ StackFrame {}:_) -> frame
+  _:t -> getCurrentFrame t
+
 interpret :: (Identifier -> Function) -> Stack -> Instruction -> Stack
 interpret funcMap stack = \case
   GetLocal name ->
-    let StackFrame locals = currentFrame in
+    let StackFrame locals = getCurrentFrame stack in
     (StackValue $ fromJust $ lookup name locals) : stack
   Const v -> StackValue v:stack
   Eq -> applyTwo $ fmap (fmap boolToInt) (==)
@@ -54,11 +59,6 @@ interpret funcMap stack = \case
     in s:stack'
   where
     interpretInsts = foldl (interpret funcMap)
-    getCurrentFrame = \case
-      [] -> error "no current frame"
-      (frame @ StackFrame {}:_) -> frame
-      _:t -> getCurrentFrame t
-    currentFrame = getCurrentFrame stack
     applyTwo f = case stack of
       StackValue v1: StackValue v2:s -> (StackValue $ f v2 v1) : s
       _ -> error "could not get two values"
