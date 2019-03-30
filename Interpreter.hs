@@ -61,7 +61,7 @@ interpret funcMap stack = \case
     currentFrame = getCurrentFrame stack
     stackValues = map getStackValue stack
     applyTwo f = case stack of
-      StackValue v1: StackValue v2:s -> (StackValue $ f ( v2) ( v1)) : s
+      StackValue v1: StackValue v2:s -> (StackValue $ f v2 v1) : s
       _ -> error "could not get two values"
 
 fac =
