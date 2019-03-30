@@ -7,12 +7,18 @@ import Data.Int (Int32)
 type Identifier = String
 type Value = Int32
 
+data BinOp
+  = Sub
+  | Mul
+
+data RelOp
+  = Eq
+
 data Instruction
   = GetLocal Identifier
   | Const Value
-  | Eq
-  | Sub
-  | Mul
+  | BinOp BinOp
+  | RelOp RelOp
   | If [Instruction] [Instruction]
   | Loop [Instruction]
   | Call Identifier
@@ -46,9 +52,11 @@ interpret funcMap stack = \case
     let StackFrame locals = getCurrentFrame stack in
     (StackValue $ fromJust $ lookup name locals) : stack
   Const v -> StackValue v:stack
-  Eq -> applyTwo $ fmap (fmap boolToInt) (==)
-  Sub -> applyTwo (-)
-  Mul -> applyTwo (*)
+  BinOp op -> applyTwo $ case op of
+    Sub -> (-)
+    Mul -> (*)
+  RelOp op -> applyTwo $ fmap (fmap boolToInt) $ case op of
+    Eq -> (==)
   If thenInsts elseInsts ->
     case stack of
       v:stack' -> interpretInsts stack' (if getStackValue v /= 0 then thenInsts else elseInsts)

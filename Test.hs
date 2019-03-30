@@ -7,19 +7,23 @@ import Data.Int (Int32)
 
 import Interpreter
 
+eq = RelOp Eq
+sub = BinOp Sub
+mul = BinOp Mul
+
 fac =
   Function ["n"]
   [ GetLocal "n"
   , Const 0
-  , Eq
+  , eq
   , If
     [ Const 1 ]
     [ GetLocal "n"
     , GetLocal "n"
     , Const 1
-    , Sub
+    , sub
     , Call "fac"
-    , Mul
+    , mul
     ]
   ]
 
@@ -28,15 +32,15 @@ fac2 =
   Function ["n"]
   [ GetLocal "n"
   , Const 0
-  , Eq
+  , eq
   , If
     [ Const 1 ]
     [ GetLocal "n"
     , Const 1
-    , Sub
+    , sub
     , Call "fac"
     , GetLocal "n"
-    , Mul
+    , mul
     ]
   ]
 
@@ -45,15 +49,15 @@ facInc =
   Function ["r", "i"]
   [ GetLocal "i"
   , Const 0
-  , Eq
+  , eq
   , If
     [ GetLocal "r" ]
     [ GetLocal "i"
     , Const 1
-    , Sub
+    , sub
     , GetLocal "i"
     , GetLocal "r"
-    , Mul
+    , mul
     , Call "fac"
     ]
   ])
