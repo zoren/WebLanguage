@@ -8,7 +8,8 @@ type Identifier = String
 type Value = Int32
 
 data BinOp
-  = Sub
+  = Add
+  | Sub
   | Mul
 
 data RelOp
@@ -53,6 +54,7 @@ interpret funcMap stack = \case
     (StackValue $ fromJust $ lookup name locals) : stack
   Const v -> StackValue v:stack
   BinOp op -> applyTwo $ case op of
+    Add -> (+)
     Sub -> (-)
     Mul -> (*)
   RelOp op -> applyTwo $ fmap (fmap boolToInt) $ case op of
