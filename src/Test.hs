@@ -86,9 +86,13 @@ runFunc name f args = interpret (\n -> if n == name then f else error "no such f
 
 runEntry fmap args = interpret (fromJust . (`lookup` fmap)) (map StackValue args) $ Call "entry"
 
+getResult = \case [StackValue v] -> v
+
+runFuncName :: [(Identifier, Function)] -> Identifier -> [Value] -> Value
+runFuncName fmap name args = getResult $ interpret (fromJust . (`lookup` fmap)) (map StackValue args) $ Call name
+
 test :: Monad m => m ()
 test = do
-  let getResult = \case [StackValue v] -> v
   testFact $ getResult . runFunc "fac" fac . (:[])
   testFact $ getResult . runFunc "fac" fac2 . (:[])
   testFact $ getResult . runEntry facInc . (:[])
