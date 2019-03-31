@@ -5,6 +5,7 @@ module Test where
 import Data.Maybe (fromJust)
 import Data.Int (Int32)
 
+import Lang
 import Interpreter
 
 eq = RelOp Eq
