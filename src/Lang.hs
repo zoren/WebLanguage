@@ -9,18 +9,20 @@ data BinOp
   = Add
   | Sub
   | Mul
+  deriving (Show, Eq, Enum, Bounded)
 
 data RelOp
   = Eq
   | Neq
+  deriving (Show, Eq, Enum, Bounded)
 
 type Instructions = [Instruction]
 
 data Instruction
-  = GetLocal Identifier
-  | Const Value
-  | BinOp BinOp
+  = BinOp BinOp
   | RelOp RelOp
+  | GetLocal Identifier
+  | Const Value
   | Call Identifier
   | If Instructions Instructions
 
