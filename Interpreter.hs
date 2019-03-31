@@ -14,6 +14,7 @@ data BinOp
 
 data RelOp
   = Eq
+  | Neq
 
 data Instruction
   = GetLocal Identifier
@@ -59,6 +60,7 @@ interpret funcMap stack = \case
     Mul -> (*)
   RelOp op -> applyTwo $ fmap (fmap boolToInt) $ case op of
     Eq -> (==)
+    Neq -> (/=)
   If thenInsts elseInsts ->
     case stack of
       v:stack' -> interpretInsts stack' (if getStackValue v /= 0 then thenInsts else elseInsts)
