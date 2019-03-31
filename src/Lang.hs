@@ -21,10 +21,12 @@ type Instructions = [Instruction]
 data Instruction
   = BinOp BinOp
   | RelOp RelOp
-  | GetLocal Identifier
   | Const Value
+  | GetLocal Identifier
   | Call Identifier
   | If Instructions Instructions
+  deriving (Show, Eq)
 
 data Function
   = Function [Identifier] Instructions
+  deriving (Show, Eq)
