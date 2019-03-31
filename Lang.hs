@@ -14,14 +14,15 @@ data RelOp
   = Eq
   | Neq
 
+type Instructions = [Instruction]
+
 data Instruction
   = GetLocal Identifier
   | Const Value
   | BinOp BinOp
   | RelOp RelOp
-  | If [Instruction] [Instruction]
-  | Loop [Instruction]
   | Call Identifier
+  | If Instructions Instructions
 
 data Function
-  = Function [Identifier] [Instruction]
+  = Function [Identifier] Instructions
