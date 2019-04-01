@@ -12,3 +12,35 @@ fac (n)
     call fac
     mul
   end
+
+facinc (r, i)
+  local.get i
+  const 0
+  eq
+  if
+    local.get r
+  else
+    local.get i
+    const 1
+    sub
+    local.get i
+    local.get r
+    mul
+    call facinc
+  end
+
+entry (n)
+  local.get n
+  const 1
+  call facinc
+
+//! fac (1) = 1
+//! fac (1) = 1
+//! fac (5) = 120
+//! fac (10) = 3628800
+//! fac (13) = 1932053504
+//! entry (1) = 1
+//! entry (1) = 1
+//! entry (5) = 120
+//! entry (10) = 3628800
+//! entry (13) = 1932053504

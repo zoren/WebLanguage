@@ -1,6 +1,7 @@
 module Parser where
 
 import Data.Void
+import Data.Int
 import Data.Char
 
 import Text.Megaparsec
@@ -14,7 +15,7 @@ type Parser a = Parsec Void String a
 allMembers :: (Enum a, Bounded a) => [a]
 allMembers = [minBound..]
 
-whiteSpace = L.space space1 (L.skipLineComment "//") empty
+whiteSpace = L.space space1 (L.skipLineComment "// ") empty
 
 lexeme = L.lexeme whiteSpace
 
@@ -27,11 +28,14 @@ pEnum = choice $ map (\d -> str (map toLower $ show d) *> pure d) allMembers
 
 name = lexeme $ some letterChar
 
+pvalue :: Parser Int32
+pvalue = L.decimal
+
 pInst :: Parser Instruction
 pInst = choice
   [ BinOp <$> pEnum
   , RelOp <$> pEnum
-  , Const <$> (str "const" *> lexeme L.decimal)
+  , Const <$> (str "const" *> lexeme pvalue)
   , GetLocal <$> (str "local.get" *> name)
   , Call <$> (str "call" *> name)
   , If <$> (str "if" *> pInsts <* str "else") <*> (pInsts <* str "end")
@@ -39,6 +43,14 @@ pInst = choice
 
 pInsts = many pInst
 
-pFunc = Function <$> parens (sepBy name $ str ",") <*> pInsts
+pcommaSep p = sepBy p $ str ","
 
-pprog = whiteSpace *> many ((,) <$> name <*> pFunc) <* eof
+pFunc = Function <$> parens (pcommaSep name) <*> pInsts
+
+pprog = whiteSpace *> many ((,) <$> name <*> pFunc)
+
+pscase = (,,) <$> name <*> parens (pcommaSep pvalue) <* str "=" <*> pvalue
+
+pScenario = many (str "//!" *> pscase <* char '\n')
+
+pprogScenario = (,) <$> pprog <*> pScenario <* eof
