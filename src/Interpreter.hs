@@ -50,5 +50,5 @@ interpret funcMap stack = \case
   where
     interpretInsts = foldl (interpret funcMap)
     applyTwo f = case stack of
-      StackValue v1: StackValue v2:s -> (StackValue $ f v2 v1) : s
+      StackValue v2: StackValue v1:s -> (StackValue $ f v1 v2) : s
       _ -> error "could not get two values"
