@@ -25,8 +25,6 @@ testFile path = buildTest $ do
         (runFuncName functions name args ~?= result)
   pure $ testGroup path $ concatMap (hUnitTestToTests . scenarioToTest) scen
 
-hunitTests = testFile "fac.wal"
-
 allTests = [testFile "fac.wal"]
 
 main :: IO ()
