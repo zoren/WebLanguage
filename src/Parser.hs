@@ -3,6 +3,7 @@ module Parser where
 import Data.Void
 import Data.Int
 import Data.Char
+import Data.Functor (($>))
 
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -24,7 +25,7 @@ str = lexeme . string
 parens p = str "(" *> p <* str ")"
 
 pEnum :: (Show a, Enum a, Bounded a) => Parser a
-pEnum = choice $ map (\d -> str (map toLower $ show d) *> pure d) allMembers
+pEnum = choice $ map (\d -> str (map toLower $ show d) $> d) allMembers
 
 name = lexeme $ some letterChar
 
